@@ -43,33 +43,33 @@ class Agent(
         consume()
     }
 
+    fun computeAmount(p: Double, c: Double, price: Double): Double {
+        return -(c - p * price.pow(2.0)) / (price.pow(2.0) + price)
+    }
+
     fun trade(book: OrderBook) {
         val pizzaAmount = stored[Product.PIZZA] ?: 0.0
         val colaAmount = stored[Product.COLA] ?: 0.0
-        if (pizzaAmount > 0.0) {
-            val sellAmount = pizzaAmount / 100.0
-            var expectedPizza = pizzaAmount
-            var expectedCola = colaAmount
-            for (i in (0..99)) {
-                val price = 1.0 * computePrice(expectedPizza, expectedCola, sellAmount)
+        // assuming price is x (cola/expectedPizza)
+        // max sqrt(p-a) + sqrt(c+x*a)
+        // given a=-2
+        // sqrt(p+2) + sqrt(c-2*x) trade 2x coke for 2 expectedPizza
+        // given a=3
+        // sqrt(p-3) + sqrt(c+3*x) trade 3 expectedPizza for 3x cola
+        // a = -(c - p x^2)/(x^2 + x)
 
-                expectedPizza -= sellAmount
-                expectedCola += sellAmount * price
-                book.sell(sellAmount, price, this)
-            }
-        }
-        if (colaAmount > 0.0) {
-            val sellAmount = -colaAmount / 100.0
-            var expectedPizza = pizzaAmount
-            var expectedCola = colaAmount
-            for (i in (0..99)) {
-                val price = 1.0 * computePrice(expectedPizza, expectedCola, sellAmount)
+        val logPrice = (Math.random() * 3.0) - 2.0
 
-                expectedPizza -= sellAmount
-                expectedCola += sellAmount * price
-                book.buy(-sellAmount, price, this)
-            }
+        val price = 10.0.pow(logPrice)
+
+        val amount = computeAmount(pizzaAmount, colaAmount, price)
+        if (amount > 0) {
+            book.sell(amount, price, this)
         }
+        if (amount < 0) {
+            book.buy(-amount, price, this)
+        }
+
     }
 
     /**

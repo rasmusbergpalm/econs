@@ -17,8 +17,8 @@ class OrderBook(private val p: Product, private val c: Product) {
      * All prices in c/p
      */
 
-    private val bids = PriorityQueue<Order>(reverseOrder())
-    private val asks = PriorityQueue<Order>()
+    val bids = PriorityQueue<Order>(reverseOrder())
+    val asks = PriorityQueue<Order>()
     private val trades = mutableListOf<Order>()
 
     fun bids(): List<Order> {
@@ -34,6 +34,8 @@ class OrderBook(private val p: Product, private val c: Product) {
     }
 
     fun buy(buyAmount: Double, buyPrice: Double, buyer: Agent) {
+        assert(buyAmount > 0)
+        assert(buyPrice>0)
         assert(buyer.hasAmount(c, buyPrice * buyAmount))
 
         var buyAmount = buyAmount
