@@ -16,8 +16,8 @@ class OrderBookTest : TestCase() {
         buyer.produce()
         seller.produce()
 
-        book.buy(3.0, 1.0, buyer) // buy 1 pizza for 3 cola
-        book.sell(3.0, 1.0, seller) // sell 1 pizza for 3 cola
+        book.buy(1.0, 3.0, buyer) // buy 1 pizza for 3 cola
+        book.sell(1.0, 3.0, seller) // sell 1 pizza for 3 cola
 
         assertEquals(7.0, seller.amount(PIZZA))
         assertEquals(3.0, seller.amount(COLA))
@@ -36,8 +36,8 @@ class OrderBookTest : TestCase() {
         buyer.produce()
         seller.produce()
 
-        book.buy(3.0, 1.0, buyer) // buy 1 pizza for 3 cola
-        book.sell(4.0, 1.0, seller) // sell 1 pizza for 4 cola
+        book.buy(1.0, 3.0, buyer) // buy 1 pizza for 3 cola
+        book.sell(1.0, 4.0, seller) // sell 1 pizza for 4 cola
 
         assertEquals(8.0, seller.amount(PIZZA))
         assertEquals(0.0, seller.amount(COLA))
@@ -56,8 +56,8 @@ class OrderBookTest : TestCase() {
         buyer.produce()
         seller.produce()
 
-        book.buy(3.0, 2.5, buyer) // buy 2.5 pizza for 3.0 cola/pizza
-        book.sell(3.0, 1.0, seller) // sell 1 pizza for 3 cola
+        book.buy(2.5, 3.0, buyer) // buy 2.5 pizza for 3.0 cola/pizza
+        book.sell(1.0, 3.0, seller) // sell 1 pizza for 3 cola
 
         assertEquals(7.0, seller.amount(PIZZA))
         assertEquals(3.0, seller.amount(COLA))
@@ -69,16 +69,16 @@ class OrderBookTest : TestCase() {
         assertEquals(emptyList<Order>(), book.asks())
     }
 
-    fun test_buyer_buys_at_best_prices_available() {
+    fun test_buyer_buys_at_lowest_prices_available() {
         val book = OrderBook(PIZZA, COLA)
         val seller = Agent(PIZZA, 8.0)
         val buyer = Agent(COLA, 12.0)
         buyer.produce()
         seller.produce()
 
-        book.sell(3.0, 1.0, seller) // sell 1 pizza for 3 cola
-        book.sell(4.0, 1.0, seller) // sell 1 pizza for 4 cola
-        book.buy(3.0, 1.0, buyer) // buy 1 pizza for 3.0 cola/pizza
+        book.sell(1.0, 3.0, seller) // sell 1 pizza for 3 cola
+        book.sell(1.0, 4.0, seller) // sell 1 pizza for 4 cola
+        book.buy(1.0, 3.0, buyer) // buy 1 pizza for 3.0 cola/pizza
 
         assertEquals(7.0, seller.amount(PIZZA))
         assertEquals(3.0, seller.amount(COLA))
@@ -90,16 +90,16 @@ class OrderBookTest : TestCase() {
         assertEquals(listOf(Order(4.0, 1.0, seller)), book.asks())
     }
 
-    fun test_seller_sells_at_best_prices_available() {
+    fun test_seller_sells_at_highest_prices_available() {
         val book = OrderBook(PIZZA, COLA)
         val seller = Agent(PIZZA, 8.0)
         val buyer = Agent(COLA, 12.0)
         buyer.produce()
         seller.produce()
 
-        book.buy(3.0, 1.0, buyer) // buy 1 pizza for 3.0 cola/pizza
-        book.buy(4.0, 1.0, buyer) // buy 1 pizza for 4.0 cola/pizza
-        book.sell(4.0, 1.0, seller) // sell 1 pizza for 4 cola
+        book.buy(1.0, 3.0, buyer) // buy 1 pizza for 3.0 cola/pizza
+        book.buy(1.0, 4.0, buyer) // buy 1 pizza for 4.0 cola/pizza
+        book.sell(1.0, 4.0, seller) // sell 1 pizza for 4 cola
 
         assertEquals(7.0, seller.amount(PIZZA))
         assertEquals(4.0, seller.amount(COLA))

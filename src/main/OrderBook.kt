@@ -19,6 +19,7 @@ class OrderBook(private val p: Product, private val c: Product) {
 
     private val bids = PriorityQueue<Order>(reverseOrder())
     private val asks = PriorityQueue<Order>()
+    private val trades = mutableListOf<Order>()
 
     fun bids(): List<Order> {
         return bids.toList()
@@ -28,7 +29,11 @@ class OrderBook(private val p: Product, private val c: Product) {
         return asks.toList()
     }
 
-    fun buy(buyPrice: Double, buyAmount: Double, buyer: Agent) {
+    override fun toString(): String {
+        return "bids: ${bids()}\nasks: ${asks()}"
+    }
+
+    fun buy(buyAmount: Double, buyPrice: Double, buyer: Agent) {
         assert(buyer.hasAmount(c, buyPrice * buyAmount))
 
         var buyAmount = buyAmount
@@ -53,7 +58,7 @@ class OrderBook(private val p: Product, private val c: Product) {
         }
     }
 
-    fun sell(sellPrice: Double, sellAmount: Double, seller: Agent) {
+    fun sell(sellAmount: Double, sellPrice: Double, seller: Agent) {
         assert(seller.hasAmount(p, sellAmount))
 
         var sellAmount = sellAmount
@@ -83,6 +88,8 @@ class OrderBook(private val p: Product, private val c: Product) {
         assert(price > 0)
         val amount = min(buyAmount, sell_amount)
         assert(amount > 0)
+
+        trades.add(Order(price, amount, buyer))
 
         val total = amount * price
 
