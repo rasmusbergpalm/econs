@@ -15,14 +15,14 @@ fun main(args: Array<String>) {
     val auctioneer = Auctioneer()
     val guess = 10.0.pow(Math.random() * 2 - 1)
 
-    val last = guess
+    var last = guess
     for (i in 0..9) {
         val book = OrderBook(Product.PIZZA, Product.COLA)
         val price = auctioneer.discoverPrices(agents, last)
         for (agent in agents) {
             agent.trade(book, price)
         }
-        val i = 0
+        last = price
     }
 
 }
