@@ -1,5 +1,7 @@
 package main
 
+import kotlin.math.pow
+
 /**
  * TODO
  */
@@ -9,17 +11,18 @@ fun main(args: Array<String>) {
     val buyers = (0..999).map { Agent(Product.COLA, 12.0) }
     buyers.forEach { it.produce() }
 
+    val agents = buyers.plus(sellers).shuffled()
+    val auctioneer = Auctioneer()
+    val guess = 10.0.pow(Math.random() * 2 - 1)
 
-    //buyers[0].trade(book)
-
-
-    for (i in 0..99) {
+    val last = guess
+    for (i in 0..9) {
         val book = OrderBook(Product.PIZZA, Product.COLA)
-        sellers.plus(buyers).shuffled().forEach {
-            it.trade(book)
+        val price = auctioneer.discoverPrices(agents, last)
+        for (agent in agents) {
+            agent.trade(book, price)
         }
-        println("head bid: ${book.bids.peek()}")
-        println("head ask: ${book.asks.peek()}")
+        val i = 0
     }
 
 }
