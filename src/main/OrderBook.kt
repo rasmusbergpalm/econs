@@ -21,25 +21,35 @@ class OrderBook(private val p: Product, private val c: Product) {
     val asks = PriorityQueue<Order>()
     private val trades = mutableListOf<Order>()
 
+
+    fun topBid(): Order? {
+        return bids.peek()
+    }
+
+    fun topAsk(): Order? {
+        return asks.peek()
+    }
+
     fun bids(): List<Order> {
-        return bids.toList()
+        return bids.sorted()
     }
 
     fun asks(): List<Order> {
-        return asks.toList()
+        return asks.sorted()
     }
 
     override fun toString(): String {
-        return "bids: ${bids()}\nasks: ${asks()}"
+        return "bids: ${bids.peek()}\nasks: ${asks.peek()}"
     }
 
     fun buy(buyAmount: Double, buyPrice: Double, buyer: Agent) {
         assert(buyAmount > 0)
-        assert(buyPrice>0)
-        assert(buyer.hasAmount(c, buyPrice * buyAmount))
+        assert(buyPrice > 0)
+        var buyFor = buyPrice * buyAmount
+        assert(buyer.hasAmount(c, buyFor))
 
         var buyAmount = buyAmount
-        while (buyAmount > 0 && !asks.isEmpty()) {
+        while (buyFor > 0 && !asks.isEmpty()) {
             var (sellPrice, sellAmount, seller) = asks.poll()
 
             if (sellPrice > buyPrice) { // best offer is not good enough
@@ -47,13 +57,15 @@ class OrderBook(private val p: Product, private val c: Product) {
                 break
             }
 
-            val bought = exchange(buyer, seller, sellPrice, buyAmount, sellAmount)
+            val willingToBuy = buyFor / sellPrice
+
+            val bought = exchange(buyer, seller, sellPrice, willingToBuy, sellAmount)
+            buyFor -= bought * sellPrice
             buyAmount -= bought
             sellAmount -= bought
             if (sellAmount > 0) {
                 asks.offer(Order(sellPrice, sellAmount, seller))
             }
-
         }
         if (buyAmount > 0) {
             bids.offer(Order(buyPrice, buyAmount, buyer))
@@ -85,10 +97,10 @@ class OrderBook(private val p: Product, private val c: Product) {
         }
     }
 
-    private fun exchange(buyer: Agent, seller: Agent, price: Double, buyAmount: Double, sell_amount: Double): Double {
+    private fun exchange(buyer: Agent, seller: Agent, price: Double, buyAmount: Double, sellAmount: Double): Double {
         assert(seller != buyer)
         assert(price > 0)
-        val amount = min(buyAmount, sell_amount)
+        val amount = min(buyAmount, sellAmount)
         assert(amount > 0)
 
         trades.add(Order(price, amount, buyer))

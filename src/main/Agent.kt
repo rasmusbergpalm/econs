@@ -26,8 +26,6 @@ class Agent(
         }
     }
 
-    private var utility = 0.0
-
     fun amount(p: Product): Double {
         return stored[p] ?: 0.0
     }
@@ -37,12 +35,17 @@ class Agent(
     }
 
     fun tick(book: OrderBook) {
-        utility = 0.0
         produce()
         trade(book)
-        consume()
     }
 
+    // assuming price is x (cola/pizza)
+    // max sqrt(p-a) + sqrt(c+x*a)
+    // given a=-2
+    // sqrt(p+2) + sqrt(c-2*x) trade 2x coke for 2 pizza
+    // given a=3
+    // sqrt(p-3) + sqrt(c+3*x) trade 3 pizza for 3x cola
+    // a = -(c - p x^2)/(x^2 + x)
     fun computeAmount(p: Double, c: Double, price: Double): Double {
         return -(c - p * price.pow(2.0)) / (price.pow(2.0) + price)
     }
@@ -50,17 +53,18 @@ class Agent(
     fun trade(book: OrderBook) {
         val pizzaAmount = stored[Product.PIZZA] ?: 0.0
         val colaAmount = stored[Product.COLA] ?: 0.0
-        // assuming price is x (cola/expectedPizza)
-        // max sqrt(p-a) + sqrt(c+x*a)
-        // given a=-2
-        // sqrt(p+2) + sqrt(c-2*x) trade 2x coke for 2 expectedPizza
-        // given a=3
-        // sqrt(p-3) + sqrt(c+3*x) trade 3 expectedPizza for 3x cola
-        // a = -(c - p x^2)/(x^2 + x)
 
-        val logPrice = (Math.random() * 3.0) - 2.0
 
-        val price = 10.0.pow(logPrice)
+        val ask = book.topAsk()
+        val bid = book.topBid()
+        val price = if (ask != null && bid != null) {
+            val mean = (bid.price + ask.price) / 2
+            val logMean = Math.log10(mean)
+            10.0.pow(r.nextGaussian() / 10.0 + logMean)
+        } else {
+            val logPrice = (Math.random() * 3.0) - 2.0
+            10.0.pow(logPrice)
+        }
 
         val amount = computeAmount(pizzaAmount, colaAmount, price)
         if (amount > 0) {
@@ -87,14 +91,11 @@ class Agent(
     }
 
     fun utility(): Double {
-        return utility
-    }
-
-    private fun consume() {
+        var utility = 0.0
         for ((p, v) in stored) {
-            stored[p] = 0.0
             utility += sqrt(v)
         }
+        return utility
     }
 
     fun produce() {

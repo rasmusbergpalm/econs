@@ -69,6 +69,28 @@ class OrderBookTest : TestCase() {
         assertEquals(emptyList<Order>(), book.asks())
     }
 
+    fun test_buys_untill_he_runs_out_of_money_or_price_is_too_high() {
+        val book = OrderBook(PIZZA, COLA)
+        val seller = Agent(PIZZA, 8.0)
+        val buyer = Agent(COLA, 12.0)
+        buyer.produce()
+        seller.produce()
+
+        book.sell(3.0, 1.0, seller) // sell 3 pizza for 3 cola. <3 bought>
+        book.sell(3.0, 2.0, seller) // sell 3 pizza for 6 cola. <1.5 bought>
+        book.sell(2.0, 4.0, seller) // sell 1 pizza for 4 cola
+        book.buy(2.0, 3.0, buyer) // buy for 6 cola while price less than 3.0
+
+        assertEquals(3.5, seller.amount(PIZZA))
+        assertEquals(6.0, seller.amount(COLA))
+
+        assertEquals(4.5, buyer.amount(PIZZA))
+        assertEquals(6.0, buyer.amount(COLA))
+
+        assertEquals(emptyList<Order>(), book.bids())
+        assertEquals(listOf(Order(2.0, 1.5, seller), Order(4.0, 2.0, seller)), book.asks())
+    }
+
     fun test_buyer_buys_at_lowest_prices_available() {
         val book = OrderBook(PIZZA, COLA)
         val seller = Agent(PIZZA, 8.0)
