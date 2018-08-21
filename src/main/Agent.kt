@@ -45,6 +45,44 @@ class Agent constructor(
         trade(book, price)
     }
 
+    /*
+        Finds optimal amounts of N products, [x_1, ..., x_N],
+        given prices [p_1, ..., p_N] and initial endowments [e_1, ..., e_N]
+
+        Current budget (assuming we can sell it all):
+            b = sum_i p_i*e_i
+        Utility:
+            u(x) = sum_i sqrt(x_i)
+        Optimization:
+            max u(x) s.t. sum_i p_i*x_i = b
+
+        Solve using lagrange multiplier:
+            L(x, λ) = sum_i sqrt(x_i) + λ*sum_i p_i*x_i - b
+            1. Set all dL/dx_i = 0, solve for x_i => x_i = (1/(-2λp_i)^2)
+            2. Set dL/dλ = 0, insert all x_i from 1. Solve for λ.
+            3. Insert λ into all x_i from 1. to get amounts.
+
+        Result:
+            v = prod_j p_j
+            x_i = (b * v)/(p_i^2*(sum_j v/p_j))
+     */
+    fun computeAmounts(prices: Map<Product, Double>): Map<Product, Double> {
+        assert(prices.keys == Product.values().toSet(), { "Prices missing." })
+        assert(prices[Product.values().last()] == 1.0, { "Last product must have price 1.0 (it's the unit of value)" })
+
+        val budget = Product.values().map { prices[it]!! * inventory[it]!! }.sum()
+        val priceProduct = prices.values.fold(1.0, { a, p -> a * p })
+        val denom = (Product.values().map { priceProduct / prices[it]!! }.sum())
+
+        val amounts = mutableMapOf<Product, Double>()
+        for (product in Product.values()) {
+            val p = prices[product]!!
+            val amount = (budget * priceProduct) / (p.pow(2.0) * denom)
+            amounts[product] = amount
+        }
+        return amounts
+    }
+
     // assuming price is x (cola/expectedPizza)
     // max sqrt(p-a) + sqrt(c+x*a)
     // given a=-2
@@ -70,7 +108,7 @@ class Agent constructor(
 
     fun utility(): Double {
         var utility = 0.0
-        for ((p, v) in inventory) {
+        for (v in inventory.values) {
             utility += sqrt(v)
         }
         return utility

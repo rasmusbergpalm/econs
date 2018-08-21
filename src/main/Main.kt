@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     val buyers = (0..999).map { Agent(mutableMapOf(Product.COLA to 12.0)) }
     val agents = buyers.plus(sellers).shuffled()
 
-    auction(agents)
+    guess(agents)
 }
 
 fun guess(agents: List<Agent>) {
