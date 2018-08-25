@@ -1,4 +1,4 @@
-package main
+package core
 
 import java.lang.Math.min
 import java.util.*
@@ -46,10 +46,10 @@ class OrderBook(private val p: Product, private val c: Product) {
         assert(buyAmount > 0)
         assert(buyPrice > 0)
         var buyFor = buyPrice * buyAmount
-        assert(buyer.hasAmount(c, buyFor))
+        //assert(buyer.hasAmount(c, buyFor))
 
         var buyAmount = buyAmount
-        while (buyFor > 0 && !asks.isEmpty()) {
+        while (buyFor > 1e-3 && !asks.isEmpty()) {
             var (sellPrice, sellAmount, seller) = asks.poll()
 
             if (sellPrice > buyPrice) { // best offer is not good enough

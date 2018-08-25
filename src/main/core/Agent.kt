@@ -1,4 +1,4 @@
-package main
+package core
 
 /**
  * TODO
@@ -7,15 +7,10 @@ import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-enum class Product {
-    PIZZA,
-    COLA
-}
-
 private val r = ThreadLocalRandom.current()!!
 
 class Agent constructor(
-        private val inventory: MutableMap<Product, Double> = mutableMapOf()
+        val inventory: MutableMap<Product, Double> = mutableMapOf()
 ) {
 
     fun amount(p: Product): Double {
@@ -23,7 +18,7 @@ class Agent constructor(
     }
 
     fun hasAmount(p: Product, amount: Double): Boolean {
-        return (inventory[p] ?: 0.0) > amount
+        return (inventory[p] ?: 0.0) >= amount
     }
 
     private fun guessPrice(book: OrderBook): Double {
@@ -40,9 +35,15 @@ class Agent constructor(
         return price
     }
 
-    fun trade(book: OrderBook) {
-        val price = guessPrice(book)
-        trade(book, price)
+    private fun guessPrices(market: Market): Map<Product, Double> {
+        return market.books.map { it.key to guessPrice(it.value) }
+                .plus(market.unitOfValue to 1.0)
+                .toMap()
+    }
+
+    fun trade(market: Market) {
+        val prices = guessPrices(market)
+        trade(market, prices)
     }
 
     /*
@@ -66,57 +67,53 @@ class Agent constructor(
             v = prod_j p_j
             x_i = (b * v)/(p_i^2*(sum_j v/p_j))
      */
-    fun computeAmounts(prices: Map<Product, Double>): Map<Product, Double> {
-        assert(prices.keys == Product.values().toSet(), { "Prices missing." })
-        assert(prices[Product.values().last()] == 1.0, { "Last product must have price 1.0 (it's the unit of value)" })
+    fun desiredAmounts(prices: Map<Product, Double>, unitOfValue: Product): Map<Product, Double> {
+        val prices = prices.plus(unitOfValue to 1.0)
 
-        val budget = Product.values().map { prices[it]!! * inventory[it]!! }.sum()
+        val budget = prices.map { it.value * (inventory[it.key] ?: 0.0) }.sum()
         val priceProduct = prices.values.fold(1.0, { a, p -> a * p })
-        val denom = (Product.values().map { priceProduct / prices[it]!! }.sum())
+        val denom = prices.values.map { priceProduct / it }.sum()
 
         val amounts = mutableMapOf<Product, Double>()
-        for (product in Product.values()) {
-            val p = prices[product]!!
-            val amount = (budget * priceProduct) / (p.pow(2.0) * denom)
+        for ((product, price) in prices) {
+            val amount = (budget * priceProduct) / (price.pow(2.0) * denom)
             amounts[product] = amount
         }
         return amounts
     }
 
-    // assuming price is x (cola/expectedPizza)
-    // max sqrt(p-a) + sqrt(c+x*a)
-    // given a=-2
-    // sqrt(p+2) + sqrt(c-2*x) trade 2x coke for 2 expectedPizza
-    // given a=3
-    // sqrt(p-3) + sqrt(c+3*x) trade 3 expectedPizza for 3x cola
-    // a = -(c - p x^2)/(x^2 + x)
-    fun computeAmount(price: Double): Double {
-        val p = inventory[Product.PIZZA] ?: 0.0
-        val c = inventory[Product.COLA] ?: 0.0
-        return -(c - p * price.pow(2.0)) / (price.pow(2.0) + price)
+    fun excessDemand(prices: Map<Product, Double>, unitOfValue: Product): Map<Product, Double> {
+        return desiredAmounts(prices, unitOfValue).mapValues { it.value - (inventory[it.key] ?: 0.0) }
     }
 
-    fun trade(book: OrderBook, price: Double) {
-        val amount = computeAmount(price)
-        if (amount > 0) {
-            book.sell(amount, price, this)
-        }
-        if (amount < 0) {
-            book.buy(-amount, price, this)
+    fun trade(market: Market, prices: Map<Product, Double>) {
+        val unitOfValue = market.unitOfValue
+        val demands = excessDemand(prices, unitOfValue).minus(unitOfValue)
+
+        //var leftToBuyFor = (inventory[unitOfValue] ?: 0.0) - (demands[unitOfValue] ?: 0.0)
+        for ((product, demand) in demands.toList().sortedBy { it.second }) {
+            val p = prices[product]!!
+
+            if (demand < 0) {
+                market.sell(product, -demand, p, this)
+            }
+            if (demand > 0) {
+                //val canAfford = leftToBuyFor / p //gold/(gold/pizza) = pizza
+                //val buyAmount = Math.min(canAfford, demand)
+                //leftToBuyFor -= buyAmount * p
+                market.buy(product, demand, p, this)
+            }
+
         }
     }
 
     fun utility(): Double {
-        var utility = 0.0
-        for (v in inventory.values) {
-            utility += sqrt(v)
-        }
-        return utility
+        return inventory.values.map { sqrt(it) }.sum()
     }
 
     fun remove(p: Product, amount: Double) {
         val left = (inventory[p] ?: 0.0) - amount
-        assert(left > 0)
+        //assert(left >= 0)
         inventory[p] = left
     }
 

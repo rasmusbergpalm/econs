@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proof of Concept</title>
+
+    <!-- Required meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+    <style>
+        #agents td:nth-child(6) {
+            border-right: 2px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-2">
+            <p>Average production</p>
+            <form>
+                <div class="form-group">
+                    <label for="grain">Grain</label>
+                    <input type="number" class="form-control" id="grain" value=20 min="0">
+                </div>
+                <div class="form-group">
+                    <label for="cattle">Cattle</label>
+                    <input type="number" class="form-control" id="cattle" value=3 min="0">
+                </div>
+                <div class="form-group">
+                    <label for="wool">Wool</label>
+                    <input type="number" class="form-control" id="wool" value=10 min="0">
+                </div>
+                <div class="form-group">
+                    <label for="coal">Coal</label>
+                    <input type="number" class="form-control" id="coal" value=6 min="0">
+                </div>
+                <div class="form-group">
+                    <label for="gold">Gold</label>
+                    <input type="number" class="form-control" id="gold" value=200 min="0">
+                </div>
+                <button type="button" id="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <div class="col-10">
+            <div id="description">
+                <p>
+                    When you click submit:
+                </p>
+                <ol>
+                    <li>For each of the products on the right, we'll spawn 500 agents, with a random amount of the good sampled from a normal distribution around the mean you've entered</li>
+                    <li>Each agent will trade with the other agents to try to optimize his utility function.</li>
+                    <li>You'll see the prices the agents settled on, and all the agents, before and after the trade.</li>
+                </ol>
+            </div>
+            <div id="results" style="display: none;">
+                <h3 class="text-center">Prices (in gold)</h3>
+                <table id="prices" class="table">
+                    <thead>
+                    <tr>
+                        <th>Grain</th>
+                        <th>Cattle</th>
+                        <th>Wool</th>
+                        <th>Coal</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="grain">na</td>
+                        <td class="cattle">na</td>
+                        <td class="wool">na</td>
+                        <td class="coal">na</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <hr/>
+                <h3 class="text-center">Agents</h3>
+                <table id="agents" class="display">
+                    <thead>
+                    <tr>
+                        <th colspan="6" style="text-align: center; border-right: 2px solid black;">Before trading</th>
+                        <th colspan="6" style="text-align: center;">After trading</th>
+                    </tr>
+                    <tr>
+                        <th>Utility</th>
+                        <th>Grain</th>
+                        <th>Cattle</th>
+                        <th>Wool</th>
+                        <th>Coal</th>
+                        <th style="border-right: 2px solid black;">Gold</th>
+
+                        <th>Utility</th>
+                        <th>Grain</th>
+                        <th>Cattle</th>
+                        <th>Wool</th>
+                        <th>Coal</th>
+                        <th>Gold</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<!--script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script-->
+<script type="text/javascript" src="/app/app.js"></script>
+</body>
+</html>
